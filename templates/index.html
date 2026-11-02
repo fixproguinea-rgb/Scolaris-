@@ -3,105 +3,121 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Scolaris · La scolarité, sans impayés</title>
 <meta name="description" content="Scolaris : gérez facilement les paiements scolaires de votre établissement.">
-<meta name="theme-color" content="#F2F6FF">
+<meta name="theme-color" content="#F1F6FE">
 <link rel="icon" href="{{ url_for('static', filename='img/icone.png') }}">
 <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icone-180.png') }}">
+{% set img = 'img/accueil/' %}
+<link rel="preload" as="image" href="{{ url_for('static', filename=img+'illu.webp') }}">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="{{ url_for('static', filename='fonts/poppins-700.woff2') }}">
 <style>
-/* Ecran d'accueil (maquette validee) : plein ecran, jamais de defilement, proportions de la maquette.
-   u = 1/100 de la hauteur de la maquette ; u = la plus petite des echelles hauteur / largeur. */
+/* Ecran d'accueil = maquette 852 x 1846 reproduite a l'echelle.
+   Toutes les cotes sont en pixels de la maquette, multipliees par --p.
+   --p suit la largeur de l'ecran ; si l'ecran est plus court que la maquette,
+   on rogne d'abord le haut des decors (--s), puis on rapproche le titre de
+   l'illustration (--o) et on resserre les espaces entre les blocs (--g).
+   Jamais de defilement. */
 @font-face{font-family:Poppins;font-weight:500;font-display:swap;src:url("{{ url_for('static', filename='fonts/poppins-500.woff2') }}") format("woff2")}
 @font-face{font-family:Poppins;font-weight:600;font-display:swap;src:url("{{ url_for('static', filename='fonts/poppins-600.woff2') }}") format("woff2")}
 @font-face{font-family:Poppins;font-weight:700;font-display:swap;src:url("{{ url_for('static', filename='fonts/poppins-700.woff2') }}") format("woff2")}
-@font-face{font-family:Poppins;font-weight:800;font-display:swap;src:url("{{ url_for('static', filename='fonts/poppins-800.woff2') }}") format("woff2")}
 @font-face{font-family:Poppins;font-weight:600;font-style:italic;font-display:swap;src:url("{{ url_for('static', filename='fonts/poppins-600i.woff2') }}") format("woff2")}
-*{box-sizing:border-box;margin:0}
-html,body{height:100%;overflow:hidden}
-body{font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#0B1F66;
-  background:radial-gradient(130% 75% at 50% 38%,#FFFFFF 0%,#F2F6FF 55%,#E4ECFF 100%)}
-.ecran{--u:min(1vh, 2.167vw);position:relative;height:100vh;display:flex;flex-direction:column;align-items:center;overflow:hidden}
-@supports (height:100dvh){.ecran{--u:min(1dvh, 2.167vw);height:100dvh}}
-/* decors */
-.deco-hg{position:absolute;left:0;top:0;width:calc(var(--u) * 26);max-width:50vw;pointer-events:none}
-.deco-hd{position:absolute;right:calc(var(--u) * -7);top:calc(var(--u) * 9);width:calc(var(--u) * 17);height:calc(var(--u) * 17);border-radius:50%;
-  background:radial-gradient(circle at 35% 35%,#EAF2FF,#CFE0FF);opacity:.75;pointer-events:none}
-.deco-hd2{position:absolute;right:calc(var(--u) * -5);top:calc(var(--u) * 24);width:calc(var(--u) * 11);height:calc(var(--u) * 11);border-radius:50%;
-  background:#DCE8FF;opacity:.6;pointer-events:none}
-/* haut */
-.icone{position:relative;flex:none;margin-top:calc(var(--u) * 8);width:calc(var(--u) * 15.2);height:calc(var(--u) * 15.2);
-  filter:drop-shadow(0 calc(var(--u) * 1) calc(var(--u) * 1.6) rgba(11,42,111,.32))}
-.mot{position:relative;flex:none;font-weight:800;font-size:calc(var(--u) * 7.4);letter-spacing:-.02em;line-height:1.05;margin-top:calc(var(--u) * .9)}
-.mot .i{position:relative;display:inline-block}
-.mot .i b{position:absolute;left:50%;top:.02em;width:.21em;height:.21em;border-radius:50%;background:#22C55E;transform:translateX(-50%)}
-.slogan{position:relative;flex:none;font-weight:700;font-size:calc(var(--u) * 2.2);margin-top:calc(var(--u) * .2);z-index:2}
-.trait{position:relative;flex:none;width:calc(var(--u) * 19);height:calc(var(--u) * 1.6);margin-top:calc(var(--u) * .4);z-index:2}
-/* illustration : prend toute la place qui reste */
-.illu{position:relative;flex:1 1 0;min-height:calc(var(--u) * 9);width:min(100%, calc(var(--u) * 75));margin-top:calc(var(--u) * -1.2);
-  background:url("{{ url_for('static', filename='img/accueil.jpg') }}") center 62%/cover no-repeat;
-  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 18%,#000 80%,transparent 100%);
-  mask-image:linear-gradient(180deg,transparent 0,#000 18%,#000 80%,transparent 100%)}
-/* bas */
-.corps{position:relative;flex:none;width:100%;max-width:calc(var(--u) * 46.2);padding:0 calc(var(--u) * 2.7);text-align:center}
-h1{font-weight:700;font-size:calc(var(--u) * 2.95);line-height:1.2;letter-spacing:-.01em;white-space:nowrap}
-.sous{color:#2E3A5C;font-weight:500;font-size:calc(var(--u) * 1.95);line-height:1.35;margin-top:calc(var(--u) * .7)}
-.btn{display:flex;align-items:center;justify-content:center;gap:calc(var(--u) * 1.6);width:100%;
-  height:calc(var(--u) * 6);border-radius:999px;font-weight:600;font-size:calc(var(--u) * 2.1);text-decoration:none;
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#F1F6FE}
+body{font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.ecran{--H:100vh;--p:min(calc(100vw / 852), calc(100vh / 1676));
+  position:relative;height:100vh;overflow:hidden;background:#F1F6FE}
+@supports (height:100dvh){.ecran{--H:100dvh;--p:min(calc(100vw / 852), calc(100dvh / 1676));height:100dvh}}
+.ecran{--D:max(0px, calc(1846 * var(--p) - var(--H)));
+  --E:max(0px, calc(var(--H) - 1846 * var(--p)));
+  --s:min(var(--D), calc(90 * var(--p)));
+  --o:min(calc(var(--D) - var(--s)), calc(30 * var(--p)));
+  --g:max(0px, calc(var(--D) - var(--s) - var(--o)))}
+.ecran > *, .haut > *, .bas > *{position:absolute}
+.cache{width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ----- haut : decors, icone, nom, slogan + illustration ----- */
+.haut{left:0;right:0;top:calc(-1 * var(--s));height:calc(968 * var(--p) + var(--E) * .5)}
+.deco{top:0;width:50%;height:calc(550 * var(--p) + var(--E) * .5);background-size:100% 100%;background-repeat:no-repeat}
+.deco.g{left:0;background-image:url("{{ url_for('static', filename=img+'g.webp') }}")}
+.deco.d{right:0;background-image:url("{{ url_for('static', filename=img+'d.webp') }}")}
+.illu{left:0;width:100%;top:calc(550 * var(--p) + var(--E) * .5);height:calc(418 * var(--p));
+  background:url("{{ url_for('static', filename=img+'illu.webp') }}") center/100% 100% no-repeat}
+.icone{left:calc(50% - 161 * var(--p));top:calc(140 * var(--p) + var(--E) * .5);width:calc(323 * var(--p));height:calc(292 * var(--p))}
+.mot{left:calc(50% - 276 * var(--p));top:calc(430 * var(--p) + var(--E) * .5);width:calc(562 * var(--p));height:calc(120 * var(--p))}
+
+/* ----- bas : titre, texte, boutons, atouts, vague ----- */
+.bas{left:0;right:0;bottom:0;height:calc(878 * var(--p))}
+.bas > *{left:50%}
+h1{width:calc(852 * var(--p));margin-left:calc(-426 * var(--p));bottom:calc(810 * var(--p) - var(--g));
+  text-align:center;color:#031A73;font-weight:700;font-size:calc(51.4 * var(--p));line-height:calc(62 * var(--p));white-space:nowrap}
+.sous{width:calc(852 * var(--p));margin-left:calc(-426 * var(--p));bottom:calc(713.5 * var(--p) - var(--g) * .88);
+  text-align:center;color:#3D4774;font-weight:500;font-size:calc(33.4 * var(--p));line-height:calc(44.3 * var(--p));white-space:nowrap}
+.btn{display:flex;align-items:center;justify-content:center;border-radius:999px;text-decoration:none;
+  font-weight:600;font-size:calc(36.3 * var(--p));line-height:1;white-space:nowrap;
   -webkit-tap-highlight-color:transparent;transition:transform .15s,filter .15s}
 .btn:active{transform:scale(.98)}
-.btn:hover{filter:brightness(1.06)}
-.btn svg{width:calc(var(--u) * 2.6);height:calc(var(--u) * 2.6);flex:none}
-.btn.plein{margin-top:calc(var(--u) * 2.2);color:#fff;background:linear-gradient(180deg,#2A5CF0 0%,#0D2FB0 100%);
-  box-shadow:0 calc(var(--u) * .9) calc(var(--u) * 1.8) calc(var(--u) * -.6) rgba(10,47,168,.5)}
-.btn.vide{margin-top:calc(var(--u) * 1.3);height:calc(var(--u) * 5.6);color:#1238C4;background:#fff;border:max(1.5px, calc(var(--u) * .2)) solid #1F4FE0}
-.atouts{display:grid;grid-template-columns:repeat(3,1fr);margin-top:calc(var(--u) * 2)}
-.atouts div{display:flex;flex-direction:column;align-items:center;gap:calc(var(--u) * .7);font-weight:600;
-  font-size:calc(var(--u) * 1.6);line-height:1.25;color:#0B2A8A;border-left:1px solid #C5D3EE}
-.atouts div:first-child{border-left:0}
-.atouts svg{width:calc(var(--u) * 3.8);height:calc(var(--u) * 3.8)}
-/* vague du bas */
-.pied{position:relative;flex:none;width:100%;margin-top:calc(var(--u) * 1.4);height:calc(var(--u) * 11.6)}
-.pied svg{position:absolute;inset:0;width:100%;height:100%}
-.pied p{position:absolute;left:0;right:0;bottom:calc(var(--u) * 2.3);text-align:center;color:#fff;font-style:italic;
-  font-weight:600;font-size:calc(var(--u) * 1.75);line-height:1.35}
-/* ordinateur / tablette large : l'illustration se fond aussi sur les cotes */
-@media (min-aspect-ratio:3/4){.illu{-webkit-mask-image:radial-gradient(closest-side,#000 55%,transparent 100%);mask-image:radial-gradient(closest-side,#000 55%,transparent 100%)}}
+.btn:hover{filter:brightness(1.07)}
+.btn:focus-visible{outline:3px solid #22C55E;outline-offset:3px}
+.btn svg{flex:none}
+.btn.plein{width:calc(753 * var(--p));height:calc(111 * var(--p));margin-left:calc(-377 * var(--p));
+  bottom:calc(568 * var(--p) - var(--g) * .56);gap:calc(35 * var(--p));color:#fff;
+  background:linear-gradient(180deg,#0A60F8 0%,#0548EA 42%,#0232BF 75%,#00229A 100%);
+  box-shadow:0 calc(14 * var(--p)) calc(26 * var(--p)) calc(-8 * var(--p)) rgba(4,52,190,.45),inset 0 calc(2 * var(--p)) 0 rgba(255,255,255,.18)}
+.btn.plein svg{width:calc(46 * var(--p));height:calc(51 * var(--p))}
+.btn.vide{width:calc(751 * var(--p));height:calc(103 * var(--p));margin-left:calc(-376 * var(--p));
+  bottom:calc(444 * var(--p) - var(--g) * .4);gap:calc(34 * var(--p));font-size:calc(34.8 * var(--p));color:#0641E9;background:#F7FAFE;
+  border:max(1.5px, calc(3 * var(--p))) solid #0241F2;box-shadow:0 calc(6 * var(--p)) calc(18 * var(--p)) rgba(40,90,220,.12)}
+.btn.vide svg{width:calc(51 * var(--p));height:calc(51 * var(--p))}
+.atout{width:calc(260 * var(--p));margin-left:calc(-130 * var(--p));bottom:calc(256.8 * var(--p));text-align:center;
+  color:#031B8D;font-weight:600;font-size:calc(23.85 * var(--p));line-height:calc(33 * var(--p))}
+.atout img{position:absolute;left:50%}
+.a1{transform:translateX(calc(-267 * var(--p)))}
+.a2{transform:translateX(calc(3 * var(--p)))}
+.a3{transform:translateX(calc(273 * var(--p)))}
+.a1 img{width:calc(74 * var(--p));height:calc(82 * var(--p));margin-left:calc(-37 * var(--p));bottom:calc(73.2 * var(--p))}
+.a2 img{width:calc(74 * var(--p));height:calc(82 * var(--p));margin-left:calc(-37 * var(--p));bottom:calc(74.2 * var(--p))}
+.a3 img{width:calc(76 * var(--p));height:calc(79 * var(--p));margin-left:calc(-38 * var(--p));bottom:calc(75.2 * var(--p))}
+.sep{width:max(1px, calc(2 * var(--p)));height:calc(151 * var(--p));bottom:calc(249 * var(--p));
+  background:linear-gradient(180deg,#5489F6,#88B3FA)}
+.sep.s1{margin-left:calc(-138 * var(--p))}
+.sep.s2{margin-left:calc(146 * var(--p))}
+.vague{left:0;right:0;bottom:0;height:calc(286 * var(--p));
+  background:url("{{ url_for('static', filename=img+'pied.webp') }}") 0 0/100% 100% no-repeat}
+.devise{width:calc(852 * var(--p));margin-left:calc(-426 * var(--p));bottom:calc(67.3 * var(--p));text-align:center;color:#fff;
+  font-style:italic;font-weight:600;font-size:calc(30.05 * var(--p));line-height:calc(37.5 * var(--p));white-space:nowrap}
+
+/* ----- ordinateur / tablette : decors dans les coins, illustration fondue sur les cotes ----- */
+@media (min-aspect-ratio:3/5){
+  .deco{width:calc(426 * var(--p));-webkit-mask-composite:source-in;mask-composite:intersect}
+  .deco.g{-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent),linear-gradient(180deg,#000 62%,transparent);
+    mask-image:linear-gradient(90deg,#000 55%,transparent),linear-gradient(180deg,#000 62%,transparent)}
+  .deco.d{-webkit-mask-image:linear-gradient(270deg,#000 55%,transparent),linear-gradient(180deg,#000 62%,transparent);
+    mask-image:linear-gradient(270deg,#000 55%,transparent),linear-gradient(180deg,#000 62%,transparent)}
+  .vague{-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 20%);mask-image:linear-gradient(180deg,transparent 0,#000 20%)}
+  .illu{left:50%;width:calc(852 * var(--p));margin-left:calc(-426 * var(--p));
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%)}
+}
 </style></head><body>
 <main class="ecran">
- <svg class="deco-hg" viewBox="0 0 400 430" aria-hidden="true">
-  <defs><linearGradient id="gb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0A2E9E"/><stop offset=".6" stop-color="#1450E8"/><stop offset="1" stop-color="#2F7BFF"/></linearGradient>
-  <linearGradient id="gc" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5AA2FF"/><stop offset="1" stop-color="#A9D0FF" stop-opacity=".2"/></linearGradient></defs>
-  <path d="M0 0H360C300 50 220 80 150 140C95 188 50 255 0 320Z" fill="url(#gb)"/>
-  <path d="M360 0H400C330 60 250 100 180 160C115 215 60 300 0 372V320C50 255 95 188 150 140C220 80 300 50 360 0Z" fill="url(#gc)"/>
-  <path d="M0 338C48 282 92 222 150 175C108 222 62 296 0 380Z" fill="#22C55E"/>
- </svg>
- <div class="deco-hd"></div><div class="deco-hd2"></div>
-
- <img class="icone" src="{{ url_for('static', filename='img/icone.png') }}" alt="">
- <div class="mot">Scolar<span class="i">ı<b></b></span>s</div>
- <div class="slogan">La scolarité, sans impayés</div>
- <svg class="trait" viewBox="0 0 360 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 20C110 2 250 2 356 14C250 8 120 9 4 20Z" fill="#22C55E"/></svg>
-
- <div class="illu" role="img" aria-label="Livres, toque de diplômé et école"></div>
-
- <div class="corps">
-  <h1>Bienvenue sur Scolaris !</h1>
-  <p class="sous">Gérez facilement les paiements scolaires<br>de votre établissement.</p>
-  <a class="btn plein" href="{{ url_for('connexion') }}"><svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="7.5" r="4.5"/><path d="M3 21.5c.8-4.8 4.4-7.5 9-7.5s8.2 2.7 9 7.5z"/></svg>Se connecter</a>
-  <a class="btn vide" href="{{ url_for('inscription') }}"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11.5" fill="#1840B8"/><path d="M12 6.5v11M6.5 12h11" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>Créer un compte</a>
-  <div class="atouts">
-   <div><svg viewBox="0 0 24 24"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#1D3FB8"/></linearGradient></defs><path d="M12 1.5l8.5 3.2v6.4c0 5.4-3.6 9.9-8.5 11.4C7.1 21 3.5 16.5 3.5 11.1V4.7z" fill="url(#g1)"/><path d="M7.8 12.2l3 3 5.6-6.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Paiements<br>sécurisés</div>
-   <div><svg viewBox="0 0 24 24"><path d="M5.5 10a6.5 6.5 0 0 1 13 0c0 6 2.8 7.3 2.8 7.3H2.7S5.5 16 5.5 10z" fill="url(#g1)"/><path d="M9.5 19.5a2.5 2.5 0 0 0 5 0z" fill="#1D3FB8"/><circle cx="12" cy="3" r="1.4" fill="#1D3FB8"/></svg>Rappels<br>automatiques</div>
-   <div><svg viewBox="0 0 24 24"><rect x="3" y="13" width="4.2" height="8.5" rx="1" fill="url(#g1)"/><rect x="9.9" y="9.5" width="4.2" height="12" rx="1" fill="url(#g1)"/><rect x="16.8" y="6" width="4.2" height="15.5" rx="1" fill="url(#g1)"/><path d="M3 10.5l6-4.2 4 2.6 6.4-5.6" fill="none" stroke="#1D3FB8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 3h4v4" fill="none" stroke="#1D3FB8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Suivi en<br>temps réel</div>
-  </div>
+ <div class="haut">
+  <div class="deco g" aria-hidden="true"></div><div class="deco d" aria-hidden="true"></div>
+  <div class="illu" role="img" aria-label="Livres, toque de diplômé, crayons et école"></div>
+  <img class="icone" src="{{ url_for('static', filename=img+'icone.webp') }}" width="323" height="292" alt="">
+  <img class="mot" src="{{ url_for('static', filename=img+'mot.webp') }}" width="562" height="120" alt="Scolaris">
+  <p class="cache">La scolarité, sans impayés</p>
  </div>
 
- <div class="pied">
-  <svg viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
-   <defs><linearGradient id="gp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1D5BFF"/><stop offset=".55" stop-color="#1238C4"/><stop offset="1" stop-color="#0A2178"/></linearGradient></defs>
-   <path d="M0 34C70 6 150 2 220 18C290 34 340 30 400 8V120H0Z" fill="#8CB7FF" opacity=".45"/>
-   <path d="M0 44C80 16 160 14 230 30C300 46 350 40 400 20V120H0Z" fill="url(#gp)"/>
-   <path d="M150 112C185 104 215 104 250 112" stroke="#9CC4FF" stroke-width="2" fill="none" opacity=".8"/>
-  </svg>
-  <p>Scolaris, une école connectée<br>pour une éducation sereine.</p>
+ <div class="bas">
+  <div class="vague" aria-hidden="true"></div>
+  <h1>Bienvenue sur Scolaris !</h1>
+  <p class="sous">Gérez facilement les paiements scolaires<br>de votre établissement.</p>
+  <a class="btn plein" href="{{ url_for('connexion') }}"><svg viewBox="0 0 46 51" aria-hidden="true"><circle cx="23" cy="12.5" r="12.5" fill="#fff"/><path d="M0 47c0-12.2 9.6-20.5 23-20.5S46 34.8 46 47c0 2.2-1.8 4-4 4H4c-2.2 0-4-1.8-4-4z" fill="#fff"/></svg>Se connecter</a>
+  <a class="btn vide" href="{{ url_for('inscription') }}"><svg viewBox="0 0 51 51" aria-hidden="true"><defs><linearGradient id="gp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F5BF5"/><stop offset="1" stop-color="#0230C2"/></linearGradient></defs><circle cx="25.5" cy="25.5" r="25.5" fill="url(#gp)"/><path d="M25.5 14v23M14 25.5h23" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>Créer un compte</a>
+  <div class="sep s1" aria-hidden="true"></div><div class="sep s2" aria-hidden="true"></div>
+  <div class="atout a1"><img src="{{ url_for('static', filename=img+'atout-1.webp') }}" alt="">Paiements<br>sécurisés</div>
+  <div class="atout a2"><img src="{{ url_for('static', filename=img+'atout-2.webp') }}" alt="">Rappels<br>automatiques</div>
+  <div class="atout a3"><img src="{{ url_for('static', filename=img+'atout-3.webp') }}" alt="">Suivi en<br>temps réel</div>
+  <p class="devise">Scolaris, une école connectée<br>pour une éducation sereine.</p>
  </div>
 </main>
 </body></html>
