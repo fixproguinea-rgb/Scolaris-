@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block titre %}Rappels{% endblock %}
+{% block entete %}{% set titre_entete = 'Rappels envoyés' %}{% include '_entete.html' %}{% endblock %}
+{% block contenu %}
+<div class="carte liste">
+ {% for r in lignes %}
+ <div class="ligne"><div class="t"><b>{{ r.cree_le|date_fr }} · {{ r.telephone }}</b><span>{{ r.message.split('\n')[2] if r.message.count('\n') > 2 else '' }}{% if r.par %} · par {{ r.par }}{% endif %}</span></div><div class="mt-d">{{ r.montant|gnf }}</div></div>
+ {% else %}<div class="vide"><b>Aucun rappel pour l'instant</b>Les relances envoyées depuis la page Retards apparaîtront ici.</div>{% endfor %}
+</div>
+{% endblock %}

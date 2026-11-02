@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block titre %}{{ cl.nom }}{% endblock %}
+{% block entete %}{% set titre_entete = cl.nom %}{% include '_entete.html' %}{% endblock %}
+{% block contenu %}
+<div class="grille2">
+<div>
+ <div class="titre"><h2>Tranches de paiement</h2><span class="pill p-g">Total : {{ total|gnf }} GNF / an</span></div>
+ <div class="carte liste">
+  {% for t in tranches %}
+  <div class="ligne"><div class="t"><b>{{ t.libelle }}</b><span>À payer avant le {{ t.date_limite|date_fr }}</span></div>
+   <div class="mt-d">{{ t.montant|gnf }}</div>
+   {% if utilisateur.role == 'directeur' %}<form method="post" onsubmit="return confirm('Supprimer cette tranche ?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="supprimer_tranche"><input type="hidden" name="tid" value="{{ t.id }}"><button class="btn r mini" aria-label="Supprimer">✕</button></form>{% endif %}
+  </div>
+  {% else %}<div class="vide"><b>Aucune tranche</b>Ajoutez les tranches de l'année (ex. : 1re tranche 600 000 GNF avant le 15/10).</div>{% endfor %}
+ </div>
+ {% if utilisateur.role == 'directeur' %}
+ <form method="post" class="carte plate">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="tranche">
+  <h2>Ajouter une tranche</h2>
+  <label for="libelle">Nom</label><input id="libelle" name="libelle" value="{{ (tranches|length + 1) ~ ('re' if not tranches else 'e') ~ ' tranche' }}">
+  <div class="deux"><div><label for="montant">Montant (GNF)</label><input id="montant" name="montant" inputmode="numeric" required placeholder="600 000"></div>
+  <div><label for="date_limite">Date limite</label><input id="date_limite" name="date_limite" type="date" required></div></div>
+  <button class="btn bloc mt">Ajouter la tranche</button>
+ </form>
+ <form method="post" class="carte plate" style="display:flex;gap:10px;align-items:end">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="renommer">
+  <div style="flex:1"><label for="nomc" style="margin-top:0">Renommer la classe</label><input id="nomc" name="nom" value="{{ cl.nom }}"></div><button class="btn l">OK</button>
+ </form>
+ {% endif %}
+</div>
+<div>
+ <div class="titre"><h2>Élèves ({{ eleves|length }})</h2><a class="petit" href="{{ url_for('eleve_nouveau', classe=cl.id) }}">+ Ajouter</a></div>
+ <div class="carte liste">
+  {% for f in eleves %}{% set s = STATUTS[f.s.statut] %}
+  <a class="ligne" href="{{ url_for('eleve', eid=f.e.id) }}"><span class="av">{{ (f.e.prenom ~ ' ' ~ f.e.nom)|initiales }}</span><div class="t"><b>{{ f.e.prenom }} {{ f.e.nom }}</b><span>Reste {{ f.s.reste|gnf }} GNF</span></div><span class="pill p-{{ s[1] }}">{{ s[0] }}</span></a>
+  {% else %}<div class="vide">Aucun élève dans cette classe.</div>{% endfor %}
+ </div>
+</div>
+</div>
+{% endblock %}

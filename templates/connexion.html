@@ -1,0 +1,18 @@
+{% extends 'base_public.html' %}
+{% block titre %}Connexion · Scolaris{% endblock %}
+{% block contenu %}
+<div class="public">
+ <img class="logo-public" style="max-width:220px" src="{{ url_for('static', filename='img/logo.png') }}" alt="Scolaris">
+ <div class="carte">
+  <h1>Connexion</h1>
+  <form method="post">
+   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+   <label for="telephone">Numéro de téléphone</label><input id="telephone" name="telephone" type="tel" required placeholder="620 00 00 00" value="{{ request.form.telephone }}">
+   <label for="mot_de_passe">Mot de passe</label><input id="mot_de_passe" name="mot_de_passe" type="password" required>
+   <button class="btn bloc mt">Se connecter</button>
+  </form>
+  <p class="muted petit mt">Mot de passe oublié ? Demandez au directeur de votre école de vous recréer un accès.</p>
+ </div>
+ <p class="centre petit"><a href="{{ url_for('inscription') }}">Inscrire une nouvelle école</a></p>
+</div>
+{% endblock %}

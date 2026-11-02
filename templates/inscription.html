@@ -1,0 +1,21 @@
+{% extends 'base_public.html' %}
+{% block titre %}Inscrire mon école · Scolaris{% endblock %}
+{% block contenu %}
+<div class="public">
+ <img class="logo-public" style="max-width:220px" src="{{ url_for('static', filename='img/logo.png') }}" alt="Scolaris">
+ <div class="carte">
+  <h1>Inscrire mon école</h1><p class="muted petit">1 mois d'essai gratuit, sans engagement.</p>
+  <form method="post">
+   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+   <label for="ecole">Nom de l'école</label><input id="ecole" name="ecole" required placeholder="Ex. : Groupe scolaire Les Étoiles" value="{{ request.form.ecole }}">
+   <label for="ville">Ville / quartier</label><input id="ville" name="ville" placeholder="Ex. : Conakry, Kipé" value="{{ request.form.ville }}">
+   <label for="annee">Année scolaire</label><input id="annee" name="annee" placeholder="2026-2027" value="{{ request.form.annee or '2026-2027' }}">
+   <label for="nom">Votre nom (directeur ou fondateur)</label><input id="nom" name="nom" required value="{{ request.form.nom }}">
+   <label for="telephone">Votre numéro de téléphone</label><input id="telephone" name="telephone" type="tel" required placeholder="620 00 00 00" value="{{ request.form.telephone }}">
+   <label for="mot_de_passe">Mot de passe (8 caractères minimum)</label><input id="mot_de_passe" name="mot_de_passe" type="password" minlength="8" required>
+   <button class="btn v bloc mt">Créer mon espace école</button>
+  </form>
+ </div>
+ <p class="centre petit"><a href="{{ url_for('connexion') }}">J'ai déjà un compte</a></p>
+</div>
+{% endblock %}

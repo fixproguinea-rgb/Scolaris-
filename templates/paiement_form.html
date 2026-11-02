@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block titre %}Nouveau paiement{% endblock %}
+{% block entete %}{% set titre_entete = 'Nouveau paiement' %}{% include '_entete.html' %}{% endblock %}
+{% block contenu %}
+<form method="post" class="carte" style="max-width:640px" id="fp">
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+ <label for="montant" style="margin-top:0">Montant reçu (GNF)</label>
+ <input id="montant" name="montant" inputmode="numeric" required autofocus placeholder="600 000" style="font-size:28px;font-weight:800;text-align:center">
+ <label for="eleve_id">Élève</label>
+ <input list="liste-eleves" id="recherche" placeholder="Tapez le nom de l'élève…" value="{% if choisi %}{{ choisi.e.prenom }} {{ choisi.e.nom }} · {{ choisi.classe }}{% endif %}" autocomplete="off">
+ <datalist id="liste-eleves">{% for f in fiches %}<option data-id="{{ f.e.id }}" data-reste="{{ f.s.reste }}" data-paye="{{ f.s.paye }}" value="{{ f.e.prenom }} {{ f.e.nom }} · {{ f.classe }}"></option>{% endfor %}</datalist>
+ <input type="hidden" name="eleve_id" id="eleve_id" value="{{ choisi.e.id if choisi else '' }}">
+ <label>Mode de paiement</label>
+ <div class="choix">{% for m in modes %}<label><input type="radio" name="mode" value="{{ m }}" {{ 'checked' if loop.first }}><span>{{ m }}</span></label>{% endfor %}</div>
+ <div class="deux"><div><label for="date_paiement">Date</label><input id="date_paiement" type="date" name="date_paiement" value="{{ jour }}"></div>
+ <div><label for="reference">Référence (facultatif)</label><input id="reference" name="reference" placeholder="N° transaction"></div></div>
+ <div class="carte plate mt" id="apres" style="background:#EEFBF5;border-color:#BBF0D6;display:none">
+  <b class="vert">Après ce paiement</b>
+  <div class="barre" style="display:flex;justify-content:space-between;margin-top:8px"><span>Total payé</span><b id="ap-paye"></b></div>
+  <div class="barre" style="display:flex;justify-content:space-between;margin-top:6px"><span>Reste à payer</span><b class="rouge" id="ap-reste"></b></div>
+ </div>
+ <button class="btn v bloc mt">Enregistrer le paiement</button>
+ <p class="petit muted centre">Enregistré par : {{ utilisateur.nom }}</p>
+</form>
+<script>
+(function(){
+ var r=document.getElementById('recherche'),h=document.getElementById('eleve_id'),m=document.getElementById('montant'),opts=document.querySelectorAll('#liste-eleves option'),sel=null;
+ function f(n){return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')}
+ function maj(){sel=null;opts.forEach(function(o){if(o.value===r.value)sel=o});h.value=sel?sel.dataset.id:'';calc()}
+ function calc(){var v=parseInt((m.value||'').replace(/\D/g,''))||0,b=document.getElementById('apres');
+  if(!sel){sel=null;opts.forEach(function(o){if(o.dataset.id===h.value)sel=o})}
+  if(!sel||!v){b.style.display='none';return}
+  b.style.display='block';document.getElementById('ap-paye').textContent=f(+sel.dataset.paye+v)+' GNF';
+  document.getElementById('ap-reste').textContent=f(Math.max(0,+sel.dataset.reste-v))+' GNF'}
+ r.addEventListener('input',maj);r.addEventListener('change',maj);m.addEventListener('input',calc);calc();
+ document.getElementById('fp').addEventListener('submit',function(ev){if(!h.value){ev.preventDefault();alert("Choisissez l'élève dans la liste.");r.focus()}});
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block titre %}Classes et frais{% endblock %}
+{% block entete %}{% set titre_entete = 'Classes et frais' %}{% include '_entete.html' %}{% endblock %}
+{% block contenu %}
+{% if utilisateur.role == 'directeur' %}
+<form method="post" class="carte" style="display:flex;gap:10px;align-items:end">
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+ <div style="flex:1"><label for="nom" style="margin-top:0">Nouvelle classe</label><input id="nom" name="nom" required placeholder="Ex. : CP1, 6e A, Terminale SE"></div>
+ <button class="btn">Ajouter</button>
+</form>
+{% endif %}
+<div class="carte liste">
+ {% for l in lignes %}
+ <a class="ligne" href="{{ url_for('classe', cid=l.c.id) }}">
+  <div class="t"><b>{{ l.c.nom }}</b><span>{{ l.n }} élève{{ 's' if l.n > 1 }} · {{ l.nb_tranches }} tranche(s) · {{ l.annuel|gnf }} GNF / an{% if l.retards %} · <span class="rouge">{{ l.retards }} en retard</span>{% endif %}</span>
+   <div class="prog"><i style="width:{{ l.pc }}%"></i></div></div>
+  <div class="mt-d">{% if not l.nb_tranches %}<span class="pill p-o">Frais à définir</span>{% else %}{{ l.pc }} %{% endif %}</div>
+ </a>
+ {% else %}<div class="vide"><b>Aucune classe</b>Ajoutez vos classes ci-dessus, ou importez vos élèves (les classes seront créées automatiquement).</div>{% endfor %}
+</div>
+<p class="petit muted">Astuce : vous pouvez aussi <a href="{{ url_for('eleves_import') }}">importer toute votre liste d'élèves</a> depuis Excel.</p>
+{% endblock %}

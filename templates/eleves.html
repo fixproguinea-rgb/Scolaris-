@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block titre %}Élèves{% endblock %}
+{% block entete %}{% set titre_entete = 'Élèves' %}{% include '_entete.html' %}{% endblock %}
+{% block contenu %}
+<form method="get" class="carte" style="padding:12px">
+ <input name="q" value="{{ q }}" placeholder="Rechercher un élève, un matricule, un parent…">
+ <div class="deux mt"><select name="classe" onchange="this.form.submit()"><option value="">Toutes les classes</option>{% for c in classes.values() %}<option value="{{ c.id }}" {{ 'selected' if cid == c.id }}>{{ c.nom }}</option>{% endfor %}</select>
+ <select name="statut" onchange="this.form.submit()"><option value="">Tous les statuts</option>{% for k, v in STATUTS.items() %}<option value="{{ k }}" {{ 'selected' if st == k }}>{{ v[0] }}</option>{% endfor %}</select></div>
+</form>
+<div class="titre"><h2>{{ fiches|length }} élève(s)</h2><span><a class="btn l mini" href="{{ url_for('eleves_import') }}">Importer</a> <a class="btn mini" href="{{ url_for('eleve_nouveau') }}">+ Élève</a></span></div>
+<div class="carte liste">
+ {% for f in fiches %}{% set s = STATUTS[f.s.statut] %}
+ <a class="ligne" href="{{ url_for('eleve', eid=f.e.id) }}"><span class="av">{{ (f.e.prenom ~ ' ' ~ f.e.nom)|initiales }}</span>
+  <div class="t"><b>{{ f.e.prenom }} {{ f.e.nom }}</b><span>{{ f.classe }} · {{ f.e.matricule }}</span></div>
+  <div class="mt-d"><div class="{{ 'rouge' if f.s.reste else 'vert' }}">{{ f.s.reste|gnf }}</div><span class="pill p-{{ s[1] }}">{{ s[0] }}</span></div></a>
+ {% else %}<div class="vide"><b>Aucun élève</b><a href="{{ url_for('eleve_nouveau') }}">Ajouter un élève</a> ou <a href="{{ url_for('eleves_import') }}">importer une liste</a>.</div>{% endfor %}
+</div>
+<p class="petit"><a href="{{ url_for('export', quoi='eleves') }}">Exporter la liste (Excel)</a></p>
+{% endblock %}

@@ -1,15 +1,17 @@
-<!doctype html>
-<html lang="fr"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Scolaris · La scolarité, sans impayés</title>
-<link rel="icon" href="/static/img/icone.png">
-<style>
-body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(90% 80% at 50% 0%,#fff,#E7EEFF);color:#0A1F5C;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box}
-img{max-width:min(520px,90vw)}
-p{color:#6B7A99;font-size:18px;margin:24px 0 32px}
-a{display:inline-block;background:linear-gradient(135deg,#34D399,#059669);color:#fff;font-weight:800;text-decoration:none;padding:16px 28px;border-radius:14px}
-</style></head><body><main>
-<img src="/static/img/logo.png" alt="Scolaris">
-<p>Sachez à tout moment qui a payé, combien il reste,<br>et relancez automatiquement les parents en retard.</p>
-<a href="https://wa.me/">Bientôt disponible</a>
-</main></body></html>
+{% extends 'base_public.html' %}
+{% block titre %}Scolaris · La scolarité, sans impayés{% endblock %}
+{% block contenu %}
+<div class="public centre" style="padding-top:28px">
+ <img class="logo-public" src="{{ url_for('static', filename='img/logo.png') }}" alt="Scolaris">
+ <h1 style="font-size:26px">Fini les impayés de scolarité.</h1>
+ <p class="muted">Sachez à tout moment qui a payé et combien il reste, envoyez un reçu à chaque paiement, et relancez les parents en retard en un clic sur WhatsApp.</p>
+ <div class="carte" style="text-align:left">
+  <div class="ligne"><span class="pill p-v">✓</span><div class="t"><b>Le reste à payer de chaque élève</b><span>Calculé automatiquement à chaque paiement</span></div></div>
+  <div class="ligne"><span class="pill p-v">✓</span><div class="t"><b>Les retards par famille</b><span>Un seul message par parent, même avec plusieurs enfants</span></div></div>
+  <div class="ligne"><span class="pill p-v">✓</span><div class="t"><b>Plus de cahiers perdus ni d'argent qui disparaît</b><span>Chaque paiement a un reçu numéroté et un nom</span></div></div>
+ </div>
+ <a class="btn v bloc" href="{{ url_for('inscription') }}">Inscrire mon école · 1 mois gratuit</a>
+ <a class="btn l bloc mt" href="{{ url_for('connexion') }}">J'ai déjà un compte</a>
+ <p class="muted petit mt">Essentiel 160 000 GNF/mois · Pro 270 000 GNF/mois</p>
+</div>
+{% endblock %}
