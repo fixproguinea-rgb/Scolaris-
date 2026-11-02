@@ -14,6 +14,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import calcul
 import db
+import sms
 
 PROD = bool(os.environ.get("VERCEL")) or os.environ.get("FLASK_ENV") == "production"
 
@@ -61,6 +62,12 @@ def maintenant():
 @app.template_filter("gnf")
 def _gnf(n):
     return calcul.gnf(n)
+
+
+@app.template_filter("gnf_l")
+def _gnf_large(n):
+    """Montant avec une espace insecable normale (plus lisible en gros caracteres)."""
+    return calcul.gnf(n).replace("\u202f", "\u00a0")
 
 
 @app.template_filter("date_fr")
@@ -293,10 +300,13 @@ def inscription():
         else:
             eid = c.insert("INSERT INTO ecoles (nom, ville, telephone, annee, cree_le) VALUES (?, ?, ?, ?, ?)",
                            (nom_ecole, f.get("ville", "").strip(), tel, annee_scolaire(), maintenant()))
-            uid = c.insert("INSERT INTO utilisateurs (ecole_id, nom, telephone, email, mot_de_passe, role, cree_le)"
-                           " VALUES (?, ?, ?, ?, ?, 'directeur', ?)",
-                           (eid, nom, tel, email or None, generate_password_hash(mdp), maintenant()))
+            uid = c.insert("INSERT INTO utilisateurs (ecole_id, nom, telephone, email, mot_de_passe, role, cree_le,"
+                           " tel_verifie) VALUES (?, ?, ?, ?, ?, 'directeur', ?, ?)",
+                           (eid, nom, tel, email or None, generate_password_hash(mdp), maintenant(),
+                            0 if sms.actif() else 1))
             c.commit()
+            if sms.actif():
+                return _demander_verification(uid, suite=url_for("classes"))
             session.clear()
             session.permanent = True
             session["uid"] = uid
@@ -316,6 +326,8 @@ def connexion():
             u = conn().execute("SELECT * FROM utilisateurs WHERE telephone = ? AND actif = 1",
                                (calcul.telephone(ident),)).fetchone()
         if u and check_password_hash(u["mot_de_passe"], request.form.get("mot_de_passe", "")):
+            if sms.actif() and not u["tel_verifie"]:
+                return _demander_verification(u["id"], suite=url_for("tableau"))
             session.clear()
             session.permanent = True
             session["uid"] = u["id"]
@@ -323,6 +335,125 @@ def connexion():
             return redirect(suite if suite.startswith("/") and not suite.startswith("//") else url_for("tableau"))
         flash("Identifiant ou mot de passe incorrect.", "erreur")
     return render_template("connexion.html")
+
+
+# ---------------------------------------------------------------- verification du telephone par SMS
+CODE_DUREE, CODE_ESSAIS, CODE_ATTENTE = 10 * 60, 5, 30
+
+
+def _hacher_code(uid, code):
+    import hashlib
+    import hmac
+    return hmac.new(app.config["SECRET_KEY"] if isinstance(app.config["SECRET_KEY"], bytes)
+                    else app.config["SECRET_KEY"].encode(), ("%s:%s" % (uid, code)).encode(),
+                    hashlib.sha256).hexdigest()
+
+
+def _envoyer_code(u):
+    """Cree un nouveau code a 6 chiffres et l'envoie par SMS. Renvoie (ok, secondes_avant_renvoi)."""
+    import secrets
+    if u["sms_envoye"]:
+        ecoule = (datetime.now() - datetime.fromisoformat(u["sms_envoye"])).total_seconds()
+        if ecoule < CODE_ATTENTE:
+            return True, int(CODE_ATTENTE - ecoule)
+    code = "%06d" % secrets.randbelow(1000000)
+    c = conn()
+    c.execute("UPDATE utilisateurs SET sms_code = ?, sms_expire = ?, sms_essais = 0, sms_envoye = ? WHERE id = ?",
+              (_hacher_code(u["id"], code), (datetime.now() + timedelta(seconds=CODE_DUREE)).isoformat(),
+               maintenant(), u["id"]))
+    c.commit()
+    ok = sms.envoyer(u["telephone"], "Scolaris : votre code de vérification est %s. Il expire dans 10 minutes."
+                     % code)
+    return ok, CODE_ATTENTE
+
+
+def _demander_verification(uid, suite):
+    session.clear()
+    session["verif"], session["verif_suite"] = uid, suite
+    u = conn().execute("SELECT * FROM utilisateurs WHERE id = ?", (uid,)).fetchone()
+    ok, _ = _envoyer_code(u)
+    if not ok:
+        flash("Le SMS n'a pas pu partir. Appuyez sur « Renvoyer le code » dans un instant.", "erreur")
+    return redirect(url_for("verification"))
+
+
+def _a_verifier():
+    uid = session.get("verif")
+    return uid and conn().execute("SELECT * FROM utilisateurs WHERE id = ? AND actif = 1", (uid,)).fetchone()
+
+
+@app.route("/verification", methods=["GET", "POST"])
+def verification():
+    u = _a_verifier()
+    if not u:
+        return redirect(url_for("connexion"))
+    if request.method == "POST":
+        code = "".join(ch for ch in "".join(request.form.getlist("code")) if ch.isdigit())
+        c = conn()
+        if (u["sms_essais"] or 0) >= CODE_ESSAIS:
+            flash("Trop d'essais. Demandez un nouveau code.", "erreur")
+        elif not u["sms_expire"] or datetime.fromisoformat(u["sms_expire"]) < datetime.now():
+            flash("Ce code a expiré. Demandez un nouveau code.", "erreur")
+        elif len(code) != 6 or not u["sms_code"] or not _egal(_hacher_code(u["id"], code), u["sms_code"]):
+            c.execute("UPDATE utilisateurs SET sms_essais = COALESCE(sms_essais, 0) + 1 WHERE id = ?", (u["id"],))
+            c.commit()
+            flash("Code incorrect. Vérifiez le SMS et réessayez.", "erreur")
+        else:
+            c.execute("UPDATE utilisateurs SET tel_verifie = 1, sms_code = NULL, sms_expire = NULL WHERE id = ?",
+                      (u["id"],))
+            c.commit()
+            suite = session.get("verif_suite") or url_for("tableau")
+            session.clear()
+            session.permanent = True
+            session["uid"] = u["id"]
+            flash("Numéro vérifié. Bienvenue sur Scolaris !", "ok")
+            return redirect(suite)
+        return redirect(url_for("verification"))
+    attente = 0
+    if u["sms_envoye"]:
+        attente = max(0, int(CODE_ATTENTE - (datetime.now() - datetime.fromisoformat(u["sms_envoye"])).total_seconds()))
+    return render_template("verification.html", tel=u["telephone"], attente=attente)
+
+
+def _egal(a, b):
+    import hmac
+    return hmac.compare_digest(a, b)
+
+
+@app.route("/verification/renvoyer", methods=["POST"])
+def verification_renvoyer():
+    u = _a_verifier()
+    if not u:
+        return redirect(url_for("connexion"))
+    ok, attente = _envoyer_code(u)
+    if not ok:
+        flash("Le SMS n'a pas pu partir. Réessayez dans un instant.", "erreur")
+    elif attente < CODE_ATTENTE:
+        flash("Patientez %d secondes avant de redemander un code." % attente, "erreur")
+    else:
+        flash("Nouveau code envoyé.", "ok")
+    return redirect(url_for("verification"))
+
+
+@app.route("/verification/numero", methods=["POST"])
+def verification_numero():
+    u = _a_verifier()
+    if not u:
+        return redirect(url_for("connexion"))
+    tel = calcul.telephone(request.form.get("telephone"))
+    c = conn()
+    if len(tel) < 9:
+        flash("Numéro de téléphone invalide.", "erreur")
+    elif tel != u["telephone"] and c.execute("SELECT 1 FROM utilisateurs WHERE telephone = ?", (tel,)).fetchone():
+        flash("Ce numéro a déjà un compte.", "erreur")
+    else:
+        c.execute("UPDATE utilisateurs SET telephone = ?, sms_envoye = NULL WHERE id = ?", (tel, u["id"]))
+        if u["role"] == "directeur":
+            c.execute("UPDATE ecoles SET telephone = ? WHERE id = ? AND telephone = ?", (tel, u["ecole_id"], u["telephone"]))
+        c.commit()
+        ok, _ = _envoyer_code(c.execute("SELECT * FROM utilisateurs WHERE id = ?", (u["id"],)).fetchone())
+        flash("Code envoyé au nouveau numéro." if ok else "Le SMS n'a pas pu partir. Réessayez.", "ok" if ok else "erreur")
+    return redirect(url_for("verification"))
 
 
 @app.route("/mot-de-passe-oublie")
@@ -381,8 +512,11 @@ def tableau():
     mois = jour[:7]
     rappels = c.execute("SELECT COUNT(*) AS n FROM rappels WHERE ecole_id = ? AND cree_le LIKE ?",
                         (g.ecole["id"], mois + "%")).fetchone()["n"]
+    rappels_total = c.execute("SELECT COUNT(*) AS n FROM rappels WHERE ecole_id = ?",
+                              (g.ecole["id"],)).fetchone()["n"]
     derniers = c.execute(
-        "SELECT p.*, e.prenom, e.nom FROM paiements p JOIN eleves e ON e.id = p.eleve_id"
+        "SELECT p.*, e.prenom, e.nom, cl.nom AS classe FROM paiements p JOIN eleves e ON e.id = p.eleve_id"
+        " LEFT JOIN classes cl ON cl.id = e.classe_id"
         " WHERE p.ecole_id = ? AND p.annule = 0 ORDER BY p.id DESC LIMIT 6", (g.ecole["id"],)).fetchall()
     par_classe = []
     for cid, cl in classes.items():
@@ -395,9 +529,15 @@ def tableau():
     return render_template("tableau.html", attendu=attendu, encaisse=encaisse, reste=attendu - encaisse,
                            pc=round(100 * encaisse / attendu) if attendu else 0,
                            en_retard=sum(1 for f in fiches if f["s"]["statut"] == "retard"),
-                           nb=len(fiches), du_jour=du_jour, rappels=rappels, derniers=derniers,
+                           nb=len(fiches), du_jour=du_jour, rappels=rappels, rappels_total=rappels_total, derniers=derniers,
                            par_classe=par_classe, sans_classe=not classes,
                            serie=_serie_mensuelle(g.ecole["id"]))
+
+
+@app.route("/plus")
+@connecte
+def plus():
+    return render_template("plus.html")
 
 
 # ---------------------------------------------------------------- classes et tranches

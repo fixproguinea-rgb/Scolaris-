@@ -106,9 +106,13 @@ def init_schema(conn):
 
 def _migrer(conn):
     """Colonnes ajoutees apres la V1 (bases deja creees)."""
+    nouvelles = [("email", "TEXT"), ("tel_verifie", "INTEGER DEFAULT 1"), ("sms_code", "TEXT"),
+                 ("sms_expire", "TEXT"), ("sms_essais", "INTEGER DEFAULT 0"), ("sms_envoye", "TEXT")]
     if conn.pg:
-        conn.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS email TEXT")
+        for nom, typ in nouvelles:
+            conn.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS %s %s" % (nom, typ))
     else:
         cols = [r[1] for r in conn.execute("PRAGMA table_info(utilisateurs)").fetchall()]
-        if "email" not in cols:
-            conn.execute("ALTER TABLE utilisateurs ADD COLUMN email TEXT")
+        for nom, typ in nouvelles:
+            if nom not in cols:
+                conn.execute("ALTER TABLE utilisateurs ADD COLUMN %s %s" % (nom, typ))

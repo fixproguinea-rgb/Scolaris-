@@ -81,11 +81,13 @@ h1.t{font-weight:700;color:#010C61}
 <main class="ecran">
  <div class="tete" aria-hidden="true"></div>
  <div class="pied" aria-hidden="true"></div>
+ {% block entete %}
  <a class="t retour" href="{{ url_for('accueil') }}" style="--x:27;--y:62;--w:61" aria-label="Retour à l'accueil"><svg viewBox="0 0 24 24" fill="none" stroke="#0044ED" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H5M11 5l-7 7 7 7"/></svg></a>
  <img class="t img" src="{{ url_for('static', filename='img/accueil/icone.webp') }}" style="--x:183.3;--y:67.4;--w:185.1;--h:167.3" alt="">
  <img class="t img" src="{{ url_for('static', filename='img/accueil/mot.webp') }}" style="--x:129.6;--y:233.8;--w:303.3;--h:65.8" alt="Scolaris">
  <p class="t txt c slogan" style="--x:6;--y:308.2">La scolarité, sans impayés</p>
  <svg class="t img" style="--x:192;--y:337;--w:181;--h:24" viewBox="0 0 181 24" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="gs" x1="0" x2="1"><stop offset="0" stop-color="#2DD35E"/><stop offset=".6" stop-color="#11B83C"/><stop offset="1" stop-color="#27C653"/></linearGradient></defs><path d="M2 22C40 9 105 2 179 9 120 6 60 11 2 22Z" fill="url(#gs)"/></svg>
+ {% endblock %}
  {% block contenu %}{% endblock %}
 </main>
 <script>

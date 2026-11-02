@@ -120,6 +120,30 @@ class AppTests(unittest.TestCase):
         r = self.c.post("/connexion", data={"identifiant": "620000009", "mot_de_passe": "Nouveau2026"})
         self.assertEqual(r.status_code, 302)
 
+    def test_verification_par_sms(self):
+        import sms
+        recus = []
+        ancien = sms.envoyer
+        sms.envoyer = lambda tel, txt: recus.append((tel, txt)) or True
+        os.environ["SMS_FOURNISSEUR"] = "console"
+        try:
+            r = self.inscrire()
+            self.assertIn("Vérifiez votre compte", r.get_data(as_text=True))
+            self.assertEqual(self.c.get("/tableau").status_code, 302)          # pas encore connecte
+            code = re.search(r"(\d{6})", recus[-1][1]).group(1)
+            faux = "000000" if code != "000000" else "111111"
+            r = self.c.post("/verification", data={"code": list(faux)}, follow_redirects=True)
+            self.assertIn("Code incorrect", r.get_data(as_text=True))
+            r = self.c.post("/verification", data={"code": list(code)})
+            self.assertEqual(r.status_code, 302)
+            self.assertEqual(self.c.get("/tableau").status_code, 200)
+            self.c.post("/deconnexion")                                         # deja verifie : connexion directe
+            r = self.c.post("/connexion", data={"identifiant": "620000001", "mot_de_passe": "Scolaris2026"})
+            self.assertTrue(r.headers["Location"].endswith("/tableau"))
+        finally:
+            sms.envoyer = ancien
+            os.environ.pop("SMS_FOURNISSEUR", None)
+
     def test_paiement_calcule_le_reste_et_recu(self):
         self.ecole_type()
         r = self.c.post("/paiements/nouveau", data={"eleve_id": "1", "montant": "500 000", "mode": "Orange Money"})
@@ -192,7 +216,7 @@ class AppTests(unittest.TestCase):
         for url in ("/tableau", "/classes", "/classes/1", "/eleves", "/eleves/1", "/eleves/1/modifier",
                     "/eleves/nouveau", "/eleves/import", "/eleves/modele.csv", "/paiements", "/paiements/nouveau",
                     "/paiements/1", "/retards", "/retards?f=10j", "/retards?f=fratries", "/rappels", "/equipe",
-                    "/parametres", "/rapports", "/rappels?o=retard", "/rappels?o=envoyes", "/retards?classe=1"):
+                    "/parametres", "/plus", "/rapports", "/rappels?o=retard", "/rappels?o=envoyes", "/retards?classe=1"):
             self.assertEqual(self.c.get(url).status_code, 200, url)
 
 
