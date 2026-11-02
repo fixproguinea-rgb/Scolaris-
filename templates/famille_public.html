@@ -18,6 +18,6 @@
   {% else %}<div class="vide">Aucun paiement enregistré.</div>{% endfor %}
  </div>
  <p class="petit muted centre">Pour payer : à l'école{% if ec.om_numero %} ou par Orange Money au {{ ec.om_numero }}{% endif %}.</p>
- <img class="logo-public" style="max-width:140px;opacity:.8" src="{{ url_for('static', filename='img/logo.png') }}" alt="Scolaris">
+ <div class="centre muted petit" style="margin:20px 0"><img src="{{ url_for('static', filename='img/icone.png') }}" alt="" style="width:28px;vertical-align:middle"> Propulsé par Scolaris</div>
 </div>
 {% endblock %}

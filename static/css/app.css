@@ -93,3 +93,43 @@ td{padding:10px 6px;border-bottom:1px solid var(--trait)}
   .kpis{grid-template-columns:repeat(4,1fr)}
   .grille2{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;align-items:start}
 }
+/* marque */
+.mot{font-weight:800;letter-spacing:-.045em;line-height:1;display:inline-block;white-space:nowrap}
+.mot-i{position:relative;display:inline-block}
+.mot-i i{position:absolute;left:50%;top:.02em;width:.24em;height:.24em;border-radius:50%;transform:translateX(-50%)}
+.marque-s{display:inline-flex;align-items:center;gap:9px}
+.marque-s img{border-radius:9px}
+/* accueil public */
+.bienvenue{min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(120% 60% at 50% 0%,#fff,#EAF1FF);overflow:hidden;position:relative}
+.bienvenue .vague-h{position:absolute;inset:0 0 auto 0;height:160px;background:linear-gradient(120deg,#0B3BB3 0%,#1E5BFF 35%,transparent 36%),linear-gradient(140deg,#22C55E 0 18%,transparent 19%);opacity:.95;clip-path:ellipse(70% 60% at 0% 0%)}
+.bienvenue .haut{position:relative;text-align:center;padding:42px 20px 0}
+.bienvenue .haut img.ic{width:150px;height:150px;filter:drop-shadow(0 18px 30px rgba(11,42,111,.35))}
+.bienvenue .slogan{font-weight:700;font-size:20px;color:var(--nuit);margin-top:8px}
+.bienvenue .trait{width:200px;height:6px;margin:8px auto 0;border-radius:50%;border-top:3px solid #22C55E}
+.bienvenue .illu{width:100%;max-width:640px;margin:10px auto 0;display:block;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 18%,#000 82%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 18%,#000 82%,transparent 100%)}
+.bienvenue .corps{position:relative;padding:6px 22px 20px;max-width:520px;margin:0 auto;width:100%;text-align:center}
+.bienvenue h1{font-size:26px;margin-top:4px}
+.btn.rond{border-radius:99px;padding:16px;font-size:17px}
+.btn.contour{background:#fff;color:var(--bleu);border:2px solid var(--bleu)}
+.atouts{display:grid;grid-template-columns:repeat(3,1fr);margin:22px 0 4px}
+.atouts div{display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:700;font-size:13px;color:var(--bleu);border-left:1.5px solid var(--trait);padding:0 6px}
+.atouts div:first-child{border-left:0}
+.atouts svg{width:36px;height:36px}
+.pied-vague{margin-top:auto;background:linear-gradient(135deg,#1840B8,#0A1F5C);color:#fff;text-align:center;font-style:italic;font-weight:600;padding:34px 20px 26px;border-radius:50% 50% 0 0/26px 26px 0 0}
+/* tableau desktop */
+.kic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;margin-bottom:8px}
+.kic svg{width:19px;height:19px}
+.graph{width:100%;height:190px}
+.donut{width:150px;height:150px;border-radius:50%;flex:none;position:relative}
+.donut::after{content:"";position:absolute;inset:26px;background:#fff;border-radius:50%}
+.leg{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:6px 0}
+.leg i{width:11px;height:11px;border-radius:50%;flex:none}
+.seul-pc{display:none}
+@media (min-width:900px){
+  .lateral{background:linear-gradient(180deg,#0B2A78,#081A4D);border-right:0}
+  .lateral .marque{color:#fff}
+  .lateral a.l{color:#C9D6F5}
+  .lateral a.l.on{background:rgba(255,255,255,.14);color:#fff}
+  .lateral .bas{color:#9FB2DF}.lateral .bas b{color:#fff}
+  .seul-pc{display:block}.seul-tel{display:none}
+}

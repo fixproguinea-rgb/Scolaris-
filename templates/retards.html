@@ -4,7 +4,7 @@
 <div class="entete">
  <div class="barre"><h1 style="margin:0">Retards</h1><span class="pill" style="background:rgba(255,255,255,.2);color:#fff">{{ familles|length }} famille(s)</span></div>
  <div class="sous">Total en retard : <b>{{ total|gnf }} GNF</b></div>
- <div class="filtres mt"><a class="{{ 'on' if not filtre }}" href="{{ url_for('retards') }}">Toutes</a><a class="{{ 'on' if filtre == '10j' }}" href="{{ url_for('retards', f='10j') }}">+ de 10 jours</a><a class="{{ 'on' if filtre == 'fratries' }}" href="{{ url_for('retards', f='fratries') }}">Fratries</a></div>
+ <div class="filtres mt"><a class="{{ 'on' if not filtre }}" href="{{ url_for('retards') }}">Toutes</a><a class="{{ 'on' if filtre == '10j' }}" href="{{ url_for('retards', f='10j') }}">+ de 10 jours</a><a class="{{ 'on' if filtre == 'fratries' }}" href="{{ url_for('retards', f='fratries') }}">Fratries</a>{% for c in classes %}<a class="{{ 'on' if cid == c.id }}" href="{{ url_for('retards', classe=c.id) }}">{{ c.nom }}</a>{% endfor %}</div>
 </div>
 {% endblock %}
 {% block contenu %}

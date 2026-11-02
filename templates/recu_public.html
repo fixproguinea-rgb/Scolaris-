@@ -10,6 +10,6 @@
   <p>{{ e.prenom }} {{ e.nom }}{% if classe %} · {{ classe }}{% endif %}<br><span class="muted">{{ p.mode }} · {{ p.date_paiement|date_fr }}</span></p>
   <p class="petit muted">✓ Reçu vérifié par Scolaris</p>
  </div>
- <img class="logo-public" style="max-width:150px;opacity:.8" src="{{ url_for('static', filename='img/logo.png') }}" alt="Scolaris">
+ <div class="centre muted petit" style="margin:20px 0"><img src="{{ url_for('static', filename='img/icone.png') }}" alt="" style="width:28px;vertical-align:middle"> Propulsé par Scolaris</div>
 </div>
 {% endblock %}

@@ -1,0 +1,6 @@
+{% macro mot(taille=26, couleur='#0A1F5C', point='#22C55E') -%}
+<span class="mot" style="font-size:{{ taille }}px;color:{{ couleur }}">Scolar<span class="mot-i">ı<i style="background:{{ point }}"></i></span>s</span>
+{%- endmacro %}
+{% macro marque(taille=20, couleur='#0A1F5C', icone=34) -%}
+<span class="marque-s"><img src="{{ url_for('static', filename='img/icone.png') }}" alt="" style="width:{{ icone }}px;height:{{ icone }}px">{{ mot(taille, couleur) }}</span>
+{%- endmacro %}

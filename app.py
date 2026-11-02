@@ -73,6 +73,14 @@ def _date_fr(v):
         return v
 
 
+@app.template_filter("tel")
+def _tel(v):
+    d = str(v or "")
+    if d.startswith("224") and len(d) == 12:
+        d = d[3:]
+    return " ".join([d[:3], d[3:5], d[5:7], d[7:]]) if len(d) == 9 else d
+
+
 @app.template_filter("initiales")
 def _initiales(nom):
     mots = [m for m in str(nom or "").split() if m]
@@ -184,6 +192,25 @@ def _message_recu(p, e, s):
             % (p["recu_no"], g.ecole["nom"], calcul.gnf(p["montant"]), p["mode"], e["prenom"], e["nom"],
                calcul.gnf(s["reste"]),
                url_for("recu_public", token=_signer({"p": p["id"]}, "recu"), _external=True)))
+
+
+MOIS = ["Janv.", "Févr.", "Mars", "Avril", "Mai", "Juin", "Juil.", "Août", "Sept.", "Oct.", "Nov.", "Déc."]
+
+
+def _serie_mensuelle(ecole_id, nb=6):
+    """Encaissements des nb derniers mois : [(libelle, montant)]."""
+    d = date.today().replace(day=1)
+    mois = []
+    for _ in range(nb):
+        mois.append(d.strftime("%Y-%m"))
+        d = (d - timedelta(days=1)).replace(day=1)
+    mois.reverse()
+    totaux = {}
+    for r in conn().execute("SELECT date_paiement, montant FROM paiements WHERE ecole_id = ? AND annule = 0"
+                            " AND date_paiement >= ?", (ecole_id, mois[0] + "-01")).fetchall():
+        k = str(r["date_paiement"])[:7]
+        totaux[k] = totaux.get(k, 0) + r["montant"]
+    return [(MOIS[int(m[5:]) - 1], totaux.get(m, 0)) for m in mois]
 
 
 def _wa(tel, texte):
@@ -307,7 +334,8 @@ def tableau():
                            pc=round(100 * encaisse / attendu) if attendu else 0,
                            en_retard=sum(1 for f in fiches if f["s"]["statut"] == "retard"),
                            nb=len(fiches), du_jour=du_jour, rappels=rappels, derniers=derniers,
-                           par_classe=par_classe, sans_classe=not classes)
+                           par_classe=par_classe, sans_classe=not classes,
+                           serie=_serie_mensuelle(g.ecole["id"]))
 
 
 # ---------------------------------------------------------------- classes et tranches
@@ -625,12 +653,17 @@ def retards():
                          "jours": max(f["s"]["jours_retard"] for f in en_retard), "promesse": promesses.get(tel),
                          "dernier": derniers.get(tel), "joignable": not tel.startswith("eleve-")})
     filtre = request.args.get("f", "")
+    cid = request.args.get("classe", type=int)
+    if cid:
+        familles = [x for x in familles if any(f["e"]["classe_id"] == cid for f in x["enfants"])]
     if filtre == "10j":
         familles = [x for x in familles if x["jours"] >= 10]
     elif filtre == "fratries":
         familles = [x for x in familles if len(x["enfants"]) > 1]
     familles.sort(key=lambda x: (-x["jours"], -x["retard"]))
-    return render_template("retards.html", familles=familles, total=sum(x["retard"] for x in familles), filtre=filtre)
+    cls = conn().execute("SELECT * FROM classes WHERE ecole_id = ? ORDER BY ordre, nom", (g.ecole["id"],)).fetchall()
+    return render_template("retards.html", familles=familles, total=sum(x["retard"] for x in familles), filtre=filtre,
+                           classes=cls, cid=cid)
 
 
 @app.route("/retards/relancer", methods=["POST"])
@@ -666,9 +699,55 @@ def promesse():
 @app.route("/rappels")
 @connecte
 def rappels():
+    onglet = request.args.get("o", "toutes")
     lignes = conn().execute("SELECT r.*, u.nom AS par FROM rappels r LEFT JOIN utilisateurs u ON u.id = r.envoye_par"
                             " WHERE r.ecole_id = ? ORDER BY r.id DESC LIMIT 200", (g.ecole["id"],)).fetchall()
-    return render_template("rappels.html", lignes=lignes)
+    _, fiches = _situations(g.ecole["id"])
+    promesses = _promesses(g.ecole["id"])
+    a_relancer = []
+    for tel, enfants in _familles(fiches).items():
+        en_retard = [f for f in enfants if f["s"]["retard"] > 0]
+        if en_retard and not tel.startswith("eleve-") and tel not in promesses:
+            a_relancer.append({"tel": tel, "enfants": en_retard, "retard": sum(f["s"]["retard"] for f in en_retard),
+                               "jours": max(f["s"]["jours_retard"] for f in en_retard)})
+    a_relancer.sort(key=lambda x: -x["jours"])
+    return render_template("rappels.html", lignes=lignes, a_relancer=a_relancer, onglet=onglet)
+
+
+@app.route("/rapports")
+@connecte
+def rapports():
+    rentree = date(date.today().year if date.today().month >= 9 else date.today().year - 1, 9, 1)
+    du = request.args.get("du") or rentree.isoformat()
+    au = request.args.get("au") or calcul.aujourdhui()
+    c = conn()
+    lignes = c.execute("SELECT mode, montant FROM paiements WHERE ecole_id = ? AND annule = 0 AND date_paiement >= ?"
+                       " AND date_paiement <= ?", (g.ecole["id"], du, au)).fetchall()
+    total = sum(r["montant"] for r in lignes)
+    modes = {}
+    for r in lignes:
+        modes[r["mode"]] = modes.get(r["mode"], 0) + r["montant"]
+    couleurs = ["#F97316", "#2563EB", "#FACC15", "#10B981", "#A855F7"]
+    parts, debut = [], 0
+    for i, (m, v) in enumerate(sorted(modes.items(), key=lambda x: -x[1])):
+        pc = 100 * v / total if total else 0
+        parts.append({"mode": m, "montant": v, "pc": round(pc), "couleur": couleurs[i % len(couleurs)],
+                      "debut": debut, "fin": debut + pc})
+        debut += pc
+    classes, fiches = _situations(g.ecole["id"])
+    attendu = sum(f["s"]["total"] for f in fiches)
+    encaisse = sum(min(f["s"]["paye"], f["s"]["total"]) for f in fiches)
+    top = []
+    for cid, cl in classes.items():
+        fs = [f for f in fiches if f["e"]["classe_id"] == cid]
+        t = sum(f["s"]["total"] for f in fs)
+        if t:
+            top.append({"nom": cl["nom"], "pc": round(100 * sum(min(f["s"]["paye"], f["s"]["total"]) for f in fs) / t)})
+    top.sort(key=lambda x: -x["pc"])
+    return render_template("rapports.html", du=du, au=au, total=total, parts=parts, top=top,
+                           taux=round(100 * encaisse / attendu) if attendu else 0,
+                           en_retard=sum(1 for f in fiches if f["s"]["statut"] == "retard"),
+                           serie=_serie_mensuelle(g.ecole["id"], 12))
 
 
 # ---------------------------------------------------------------- equipe et parametres

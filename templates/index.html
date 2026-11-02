@@ -1,17 +1,28 @@
 {% extends 'base_public.html' %}
+{% from '_marque.html' import mot %}
 {% block titre %}Scolaris · La scolarité, sans impayés{% endblock %}
 {% block contenu %}
-<div class="public centre" style="padding-top:28px">
- <img class="logo-public" src="{{ url_for('static', filename='img/logo.png') }}" alt="Scolaris">
- <h1 style="font-size:26px">Fini les impayés de scolarité.</h1>
- <p class="muted">Sachez à tout moment qui a payé et combien il reste, envoyez un reçu à chaque paiement, et relancez les parents en retard en un clic sur WhatsApp.</p>
- <div class="carte" style="text-align:left">
-  <div class="ligne"><span class="pill p-v">✓</span><div class="t"><b>Le reste à payer de chaque élève</b><span>Calculé automatiquement à chaque paiement</span></div></div>
-  <div class="ligne"><span class="pill p-v">✓</span><div class="t"><b>Les retards par famille</b><span>Un seul message par parent, même avec plusieurs enfants</span></div></div>
-  <div class="ligne"><span class="pill p-v">✓</span><div class="t"><b>Plus de cahiers perdus ni d'argent qui disparaît</b><span>Chaque paiement a un reçu numéroté et un nom</span></div></div>
+<div class="bienvenue">
+ <div class="vague-h"></div>
+ <div class="haut">
+  <img class="ic" src="{{ url_for('static', filename='img/icone.png') }}" alt="Scolaris">
+  <div style="margin-top:6px">{{ mot(60) }}</div>
+  <div class="slogan">La scolarité, sans impayés</div>
+  <div class="trait"></div>
  </div>
- <a class="btn v bloc" href="{{ url_for('inscription') }}">Inscrire mon école · 1 mois gratuit</a>
- <a class="btn l bloc mt" href="{{ url_for('connexion') }}">J'ai déjà un compte</a>
- <p class="muted petit mt">Essentiel 160 000 GNF/mois · Pro 270 000 GNF/mois</p>
+ <img class="illu" src="{{ url_for('static', filename='img/accueil.jpg') }}" alt="">
+ <div class="corps">
+  <h1>Bienvenue sur Scolaris !</h1>
+  <p class="muted" style="font-size:16px;margin:8px 0 22px">Gérez facilement les paiements scolaires de votre établissement.</p>
+  <a class="btn bloc rond" href="{{ url_for('connexion') }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="8" r="4.5"/><path d="M3.5 21c.9-4.4 4.2-7 8.5-7s7.6 2.6 8.5 7z"/></svg>Se connecter</a>
+  <a class="btn bloc rond contour mt" href="{{ url_for('inscription') }}"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1840B8"/><path d="M12 7v10M7 12h10" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>Créer un compte</a>
+  <div class="atouts">
+   <div><svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5z" fill="#1840B8"/><path d="M8 12l3 3 5-6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Paiements sécurisés</div>
+   <div><svg viewBox="0 0 24 24" fill="#1840B8"><path d="M6 9a6 6 0 1 1 12 0c0 6 3 7.5 3 7.5H3S6 15 6 9z"/><path d="M10 19.5a2 2 0 0 0 4 0z"/></svg>Rappels automatiques</div>
+   <div><svg viewBox="0 0 24 24" fill="#1840B8"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/><path d="M3 9l6-4 4 3 7-6" fill="none" stroke="#1840B8" stroke-width="2"/></svg>Suivi en temps réel</div>
+  </div>
+  <p class="petit muted">1 mois d'essai gratuit · Essentiel 160 000 GNF/mois · Pro 270 000 GNF/mois</p>
+ </div>
+ <div class="pied-vague">Scolaris, une école connectée<br>pour une éducation sereine.</div>
 </div>
 {% endblock %}

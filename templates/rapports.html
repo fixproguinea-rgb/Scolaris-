@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% from '_graph.html' import courbe %}
+{% block titre %}Rapports{% endblock %}
+{% block entete %}{% set titre_entete = 'Rapports' %}{% include '_entete.html' %}{% endblock %}
+{% block contenu %}
+<form method="get" class="carte deux" style="align-items:end">
+ <div><label for="du" style="margin-top:0">Du</label><input id="du" type="date" name="du" value="{{ du }}"></div>
+ <div><label for="au" style="margin-top:0">Au</label><input id="au" type="date" name="au" value="{{ au }}" onchange="this.form.submit()"></div>
+</form>
+<div class="kpis" style="grid-template-columns:repeat(3,1fr)">
+ <div class="k"><small>Paiements reçus</small><b class="vert">{{ total|gnf }}</b></div>
+ <div class="k"><small>Élèves en retard</small><b class="rouge">{{ en_retard }}</b></div>
+ <div class="k"><small>Taux de paiement</small><b style="color:#2563EB">{{ taux }} %</b></div>
+</div>
+<div class="grille2">
+ <div class="carte"><h2>Répartition des paiements</h2>
+  {% if parts %}
+  <div style="display:flex;align-items:center;gap:22px;margin-top:14px;flex-wrap:wrap">
+   <div class="donut" style="background:conic-gradient({% for p in parts %}{{ p.couleur }} {{ p.debut }}% {{ p.fin }}%{{ ', ' if not loop.last }}{% endfor %})"></div>
+   <div>{% for p in parts %}<div class="leg"><i style="background:{{ p.couleur }}"></i>{{ p.mode }} <b>{{ p.pc }} %</b> <span class="muted petit">{{ p.montant|gnf }}</span></div>{% endfor %}</div>
+  </div>{% else %}<div class="vide">Aucun paiement sur cette période.</div>{% endif %}
+ </div>
+ <div class="carte"><h2>Classes les mieux à jour</h2>
+  <div class="liste" style="padding:0">{% for t in top %}<div class="ligne"><div class="t"><b>{{ t.nom }}</b><div class="prog"><i style="width:{{ t.pc }}%"></i></div></div><div class="mt-d">{{ t.pc }} %</div></div>{% else %}<div class="vide">Aucune donnée.</div>{% endfor %}</div>
+ </div>
+</div>
+<div class="carte"><h2>Encaissements des 12 derniers mois</h2>{{ courbe(serie, 220) }}</div>
+<p class="petit"><a href="{{ url_for('export', quoi='paiements') }}">Exporter les paiements (Excel)</a> · <a href="{{ url_for('export', quoi='eleves') }}">Exporter les élèves et soldes (Excel)</a></p>
+{% endblock %}

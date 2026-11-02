@@ -1,0 +1,12 @@
+{% macro courbe(serie, h=190) -%}
+{% set mx = (serie|map(attribute=1)|max) or 1 %}{% set n = serie|length %}
+<svg class="graph" viewBox="0 0 600 {{ h }}" preserveAspectRatio="none" role="img" aria-label="Évolution des paiements">
+ {% for k in range(4) %}<line x1="0" x2="600" y1="{{ 10 + k * (h - 40) / 3 }}" y2="{{ 10 + k * (h - 40) / 3 }}" stroke="#E3E9F5"/>{% endfor %}
+ {% set pts = [] %}{% for lib, v in serie %}{% set x = 30 + loop.index0 * 540 / ((n - 1) or 1) %}{% set y = 10 + (h - 40) * (1 - v / mx) %}{% set _ = pts.append('%.1f,%.1f'|format(x, y)) %}{% endfor %}
+ <polygon points="30,{{ h - 30 }} {{ pts|join(' ') }} 570,{{ h - 30 }}" fill="rgba(37,99,235,.10)"/>
+ <polyline points="{{ pts|join(' ') }}" fill="none" stroke="#2563EB" stroke-width="3" stroke-linejoin="round"/>
+ {% for lib, v in serie %}{% set x = 30 + loop.index0 * 540 / ((n - 1) or 1) %}{% set y = 10 + (h - 40) * (1 - v / mx) %}
+ <circle cx="{{ x }}" cy="{{ y }}" r="5" fill="#fff" stroke="#2563EB" stroke-width="3"/>
+ <text x="{{ x }}" y="{{ h - 8 }}" text-anchor="middle" font-size="13" fill="#6B7A99">{{ lib }}</text>{% endfor %}
+</svg>
+{%- endmacro %}

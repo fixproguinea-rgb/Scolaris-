@@ -2,14 +2,14 @@
 {% block titre %}Tableau de bord{% endblock %}
 {% block entete %}
 <div class="entete">
- <div class="barre"><a class="marque" href="{{ url_for('tableau') }}"><img src="{{ url_for('static', filename='img/icone.png') }}" alt="">Scolaris</a><span class="av" style="background:rgba(255,255,255,.2)">{{ utilisateur.nom|initiales }}</span></div>
+ <div class="barre">{% from '_marque.html' import mot %}<a class="marque" href="{{ url_for('tableau') }}"><img src="{{ url_for('static', filename='img/icone.png') }}" alt="">{{ mot(20, '#fff', '#4ADE80') }}</a><span class="av" style="background:rgba(255,255,255,.2)">{{ utilisateur.nom|initiales }}</span></div>
  <div class="sous">{{ ecole.nom }}{% if ecole.annee %} · Année {{ ecole.annee }}{% endif %}</div>
  <div class="sous" style="margin-top:14px">Encaissé cette année</div>
  <div class="grand">{{ encaisse|gnf }} <span style="font-size:16px;opacity:.8">GNF</span></div>
  <div class="prog"><i style="width:{{ pc }}%"></i></div>
  <div class="barre petit" style="margin-top:7px;opacity:.9"><span>{{ pc }} % payé</span><span>Attendu : {{ attendu|gnf }} GNF</span></div>
  <div class="menu-plus">
-  <a href="{{ url_for('paiements') }}">Paiements</a><a href="{{ url_for('rappels') }}">Rappels</a>
+  <a href="{{ url_for('classes') }}">Classes et frais</a><a href="{{ url_for('paiements') }}">Paiements</a>
   {% if utilisateur.role == 'directeur' %}<a href="{{ url_for('equipe') }}">Équipe</a><a href="{{ url_for('parametres') }}">Paramètres</a>{% endif %}
   <form method="post" action="{{ url_for('deconnexion') }}" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button>Déconnexion</button></form>
  </div>
@@ -19,12 +19,14 @@
 {% if sans_classe %}
 <div class="carte vide"><b>Bienvenue sur Scolaris 👋</b>Commencez par créer vos classes et leurs tranches de paiement, puis ajoutez vos élèves.<div class="mt"><a class="btn" href="{{ url_for('classes') }}">Créer mes classes</a></div></div>
 {% endif %}
+{% from '_graph.html' import courbe %}
 <div class="kpis">
- <div class="k"><small>Reste à encaisser</small><b class="rouge">{{ reste|gnf }}</b></div>
- <div class="k"><small>Élèves en retard</small><b class="rouge">{{ en_retard }} <span class="petit muted">/ {{ nb }}</span></b></div>
- <div class="k"><small>Encaissé aujourd'hui</small><b class="vert">{{ du_jour|gnf }}</b></div>
- <div class="k"><small>Rappels ce mois</small><b>{{ rappels }}</b></div>
+ <div class="k"><div class="kic" style="background:#E8EEFF;color:#2563EB"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><small>Reste à encaisser</small><b class="rouge">{{ reste|gnf }}</b></div>
+ <div class="k"><div class="kic" style="background:#FFE8E8;color:#EF4444"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5" fill="currentColor"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5z" fill="currentColor"/><circle cx="18" cy="9" r="2.5" fill="currentColor"/></svg></div><small>Élèves en retard</small><b class="rouge">{{ en_retard }} <span class="petit muted">/ {{ nb }}</span></b></div>
+ <div class="k"><div class="kic" style="background:#DCFCE7;color:#16A34A"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"/><path d="M8 12l3 3 5-6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><small>Encaissé aujourd'hui</small><b class="vert">{{ du_jour|gnf }}</b></div>
+ <div class="k"><div class="kic" style="background:#F3E8FF;color:#9333EA"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div><small>Rappels ce mois</small><b>{{ rappels }}</b></div>
 </div>
+<div class="carte seul-pc"><div class="titre" style="margin-top:0"><h2>Évolution des paiements</h2><a class="petit" href="{{ url_for('rapports') }}">Rapports</a></div>{{ courbe(serie) }}</div>
 <div class="grille2">
  <div>
   <div class="titre"><h2>Derniers paiements</h2><a class="petit" href="{{ url_for('paiements') }}">Tout voir</a></div>

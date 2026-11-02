@@ -1,8 +1,8 @@
 {% extends 'base_public.html' %}
 {% block titre %}Inscrire mon école · Scolaris{% endblock %}
-{% block contenu %}
+{% from '_marque.html' import mot %}{% block contenu %}
 <div class="public">
- <img class="logo-public" style="max-width:220px" src="{{ url_for('static', filename='img/logo.png') }}" alt="Scolaris">
+ <div class="centre" style="padding:22px 0 12px"><img src="{{ url_for('static', filename='img/icone.png') }}" alt="" style="width:84px"><div>{{ mot(40) }}</div><div class="muted">La scolarité, sans impayés</div></div>
  <div class="carte">
   <h1>Inscrire mon école</h1><p class="muted petit">1 mois d'essai gratuit, sans engagement.</p>
   <form method="post">

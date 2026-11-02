@@ -165,7 +165,7 @@ class AppTests(unittest.TestCase):
         for url in ("/tableau", "/classes", "/classes/1", "/eleves", "/eleves/1", "/eleves/1/modifier",
                     "/eleves/nouveau", "/eleves/import", "/eleves/modele.csv", "/paiements", "/paiements/nouveau",
                     "/paiements/1", "/retards", "/retards?f=10j", "/retards?f=fratries", "/rappels", "/equipe",
-                    "/parametres"):
+                    "/parametres", "/rapports", "/rappels?o=retard", "/rappels?o=envoyes", "/retards?classe=1"):
             self.assertEqual(self.c.get(url).status_code, 200, url)
 
 

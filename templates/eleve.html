@@ -4,7 +4,7 @@
 <div class="entete">
  <div class="barre"><a class="marque" href="{{ url_for('eleves') }}">‹ Élèves</a><a class="petit" style="color:#fff" href="{{ url_for('eleve_modifier', eid=e.id) }}">Modifier</a></div>
  <div style="display:flex;align-items:center;gap:14px;margin-top:14px"><span class="av" style="width:56px;height:56px;font-size:19px;background:rgba(255,255,255,.22)">{{ (e.prenom ~ ' ' ~ e.nom)|initiales }}</span>
- <div><h1 style="margin:0">{{ e.prenom }} {{ e.nom }}</h1><div class="sous" style="margin-top:3px">{{ f.classe }} · {{ e.matricule }}{% if e.parent_nom %} · {{ e.parent_nom }}{% endif %}{% if e.tel1 %} · {{ e.tel1 }}{% endif %}</div></div></div>
+ <div><h1 style="margin:0">{{ e.prenom }} {{ e.nom }}</h1><div class="sous" style="margin-top:3px">{{ f.classe }} · {{ e.matricule }}{% if e.parent_nom %} · {{ e.parent_nom }}{% endif %}{% if e.tel1 %} · {{ e.tel1|tel }}{% endif %}</div></div></div>
 </div>
 {% endblock %}
 {% block contenu %}

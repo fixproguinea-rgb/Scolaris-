@@ -5,7 +5,7 @@
 <div class="grille2"><div>
 <div class="carte liste">
  {% for m in membres %}
- <div class="ligne"><span class="av">{{ m.nom|initiales }}</span><div class="t"><b>{{ m.nom }}</b><span>{{ ROLES[m.role] }} · {{ m.telephone }}</span></div>
+ <div class="ligne"><span class="av">{{ m.nom|initiales }}</span><div class="t"><b>{{ m.nom }}</b><span>{{ ROLES[m.role] }} · {{ m.telephone|tel }}</span></div>
  {% if m.id != utilisateur.id %}<form method="post" onsubmit="return confirm('Retirer l\'accès de {{ m.nom }} ?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="desactiver"><input type="hidden" name="uid" value="{{ m.id }}"><button class="btn r mini">Retirer</button></form>{% endif %}</div>
  {% endfor %}
 </div></div><div>
