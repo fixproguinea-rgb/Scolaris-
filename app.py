@@ -230,25 +230,46 @@ def accueil():
     return render_template("index.html")
 
 
+def annee_scolaire(jour=None):
+    """Annee scolaire en cours : a partir d'aout, on passe a l'annee suivante."""
+    jour = jour or date.today()
+    debut = jour.year if jour.month >= 8 else jour.year - 1
+    return "%d-%d" % (debut, debut + 1)
+
+
+def _email(valeur):
+    e = (valeur or "").strip().lower()
+    return e if e and "@" in e and "." in e.split("@")[-1] and " " not in e else ("" if not e else None)
+
+
 @app.route("/inscription", methods=["GET", "POST"])
 def inscription():
     if request.method == "POST":
         f = request.form
         nom_ecole, nom = f.get("ecole", "").strip(), f.get("nom", "").strip()
         tel, mdp = calcul.telephone(f.get("telephone")), f.get("mot_de_passe", "")
+        email = _email(f.get("email"))
+        c = conn()
         if not (nom_ecole and nom and len(tel) >= 9):
-            flash("Remplissez le nom de l'école, votre nom et un numéro de téléphone valide.", "erreur")
+            flash("Remplissez le nom de l'établissement, votre nom et un numéro de téléphone valide.", "erreur")
+        elif email is None:
+            flash("L'adresse e-mail n'est pas valide.", "erreur")
         elif len(mdp) < 8:
             flash("Le mot de passe doit faire au moins 8 caractères.", "erreur")
-        elif conn().execute("SELECT 1 FROM utilisateurs WHERE telephone = ?", (tel,)).fetchone():
+        elif mdp != f.get("confirmation", ""):
+            flash("Les deux mots de passe ne sont pas identiques.", "erreur")
+        elif not f.get("conditions"):
+            flash("Acceptez les conditions d'utilisation pour créer votre compte.", "erreur")
+        elif c.execute("SELECT 1 FROM utilisateurs WHERE telephone = ?", (tel,)).fetchone():
             flash("Ce numéro a déjà un compte. Connectez-vous.", "erreur")
+        elif email and c.execute("SELECT 1 FROM utilisateurs WHERE email = ?", (email,)).fetchone():
+            flash("Cette adresse e-mail a déjà un compte. Connectez-vous.", "erreur")
         else:
-            c = conn()
             eid = c.insert("INSERT INTO ecoles (nom, ville, telephone, annee, cree_le) VALUES (?, ?, ?, ?, ?)",
-                           (nom_ecole, f.get("ville", "").strip(), tel, f.get("annee", "").strip(), maintenant()))
-            uid = c.insert("INSERT INTO utilisateurs (ecole_id, nom, telephone, mot_de_passe, role, cree_le)"
-                           " VALUES (?, ?, ?, ?, 'directeur', ?)",
-                           (eid, nom, tel, generate_password_hash(mdp), maintenant()))
+                           (nom_ecole, f.get("ville", "").strip(), tel, annee_scolaire(), maintenant()))
+            uid = c.insert("INSERT INTO utilisateurs (ecole_id, nom, telephone, email, mot_de_passe, role, cree_le)"
+                           " VALUES (?, ?, ?, ?, ?, 'directeur', ?)",
+                           (eid, nom, tel, email or None, generate_password_hash(mdp), maintenant()))
             c.commit()
             session.clear()
             session.permanent = True
@@ -261,16 +282,31 @@ def inscription():
 @app.route("/connexion", methods=["GET", "POST"])
 def connexion():
     if request.method == "POST":
-        tel = calcul.telephone(request.form.get("telephone"))
-        u = conn().execute("SELECT * FROM utilisateurs WHERE telephone = ? AND actif = 1", (tel,)).fetchone()
+        ident = (request.form.get("identifiant") or request.form.get("telephone") or "").strip()
+        if "@" in ident:
+            u = conn().execute("SELECT * FROM utilisateurs WHERE email = ? AND actif = 1",
+                               (ident.lower(),)).fetchone()
+        else:
+            u = conn().execute("SELECT * FROM utilisateurs WHERE telephone = ? AND actif = 1",
+                               (calcul.telephone(ident),)).fetchone()
         if u and check_password_hash(u["mot_de_passe"], request.form.get("mot_de_passe", "")):
             session.clear()
             session.permanent = True
             session["uid"] = u["id"]
             suite = request.args.get("suite", "")
             return redirect(suite if suite.startswith("/") and not suite.startswith("//") else url_for("tableau"))
-        flash("Numéro ou mot de passe incorrect.", "erreur")
+        flash("Identifiant ou mot de passe incorrect.", "erreur")
     return render_template("connexion.html")
+
+
+@app.route("/mot-de-passe-oublie")
+def mot_de_passe_oublie():
+    return render_template("mot_de_passe_oublie.html")
+
+
+@app.route("/conditions")
+def conditions():
+    return render_template("conditions.html")
 
 
 @app.route("/deconnexion", methods=["POST"])
@@ -756,7 +792,16 @@ def rapports():
 def equipe():
     c = conn()
     if request.method == "POST":
-        if request.form.get("action") == "desactiver":
+        if request.form.get("action") == "mot_de_passe":
+            uid, mdp = request.form.get("uid", type=int), request.form.get("mot_de_passe", "")
+            if len(mdp) < 8:
+                flash("Le nouveau mot de passe doit faire au moins 8 caractères.", "erreur")
+            else:
+                c.execute("UPDATE utilisateurs SET mot_de_passe = ? WHERE id = ? AND ecole_id = ?",
+                          (generate_password_hash(mdp), uid, g.ecole["id"]))
+                c.commit()
+                flash("Nouveau mot de passe enregistré. Transmettez-le à la personne.", "ok")
+        elif request.form.get("action") == "desactiver":
             uid = request.form.get("uid", type=int)
             if uid != g.user["id"]:
                 c.execute("UPDATE utilisateurs SET actif = 0 WHERE id = ? AND ecole_id = ?", (uid, g.ecole["id"]))

@@ -133,3 +133,9 @@ td{padding:10px 6px;border-bottom:1px solid var(--trait)}
   .lateral .bas{color:#9FB2DF}.lateral .bas b{color:#fff}
   .seul-pc{display:block}.seul-tel{display:none}
 }
+/* equipe : changer le mot de passe d'un membre */
+details.mdp{position:relative}
+details.mdp summary{list-style:none;cursor:pointer}
+details.mdp summary::-webkit-details-marker{display:none}
+details.mdp .ligne-form{position:absolute;right:0;top:110%;z-index:5;display:flex;gap:6px;background:#fff;padding:8px;border-radius:12px;box-shadow:0 8px 24px rgba(10,30,90,.18);width:260px}
+details.mdp .ligne-form input{margin:0;flex:1;min-width:0}

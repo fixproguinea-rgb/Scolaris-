@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS ecoles (
     annee TEXT, recu_seq INTEGER DEFAULT 0, cree_le TEXT);
 CREATE TABLE IF NOT EXISTS utilisateurs (
     id {PK}, ecole_id INTEGER NOT NULL, nom TEXT NOT NULL, telephone TEXT NOT NULL UNIQUE,
-    mot_de_passe TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'secretaire', actif INTEGER DEFAULT 1, cree_le TEXT);
+    mot_de_passe TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'secretaire', actif INTEGER DEFAULT 1, cree_le TEXT,
+    email TEXT);
 CREATE TABLE IF NOT EXISTS classes (
     id {PK}, ecole_id INTEGER NOT NULL, nom TEXT NOT NULL, ordre INTEGER DEFAULT 0);
 CREATE TABLE IF NOT EXISTS echeances (
@@ -97,4 +98,15 @@ def init_schema(conn):
     for stmt in _SCHEMA.replace("{PK}", pk).split(";"):
         if stmt.strip():
             conn.execute(stmt)
+    _migrer(conn)
     conn.commit()
+
+
+def _migrer(conn):
+    """Colonnes ajoutees apres la V1 (bases deja creees)."""
+    if conn.pg:
+        conn.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS email TEXT")
+    else:
+        cols = [r[1] for r in conn.execute("PRAGMA table_info(utilisateurs)").fetchall()]
+        if "email" not in cols:
+            conn.execute("ALTER TABLE utilisateurs ADD COLUMN email TEXT")

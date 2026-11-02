@@ -59,10 +59,11 @@ class AppTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def inscrire(self, tel="620000001"):
-        return self.c.post("/inscription", data={"ecole": "Les Étoiles", "ville": "Conakry", "annee": "2026-2027",
-                                                  "nom": "Mamadou Bah", "telephone": tel,
-                                                  "mot_de_passe": "Scolaris2026"}, follow_redirects=True)
+    def inscrire(self, tel="620000001", email=""):
+        return self.c.post("/inscription", data={"ecole": "Les Étoiles", "nom": "Mamadou Bah", "telephone": tel,
+                                                  "email": email, "mot_de_passe": "Scolaris2026",
+                                                  "confirmation": "Scolaris2026", "conditions": "1"},
+                           follow_redirects=True)
 
     def ecole_type(self):
         self.inscrire()
@@ -92,6 +93,32 @@ class AppTests(unittest.TestCase):
         self.c.post("/deconnexion")
         r = self.c.post("/connexion", data={"telephone": "620000001", "mot_de_passe": "faux"})
         self.assertIn("incorrect", r.get_data(as_text=True))
+
+    def test_connexion_par_email_et_controles_inscription(self):
+        self.inscrire(email="Directeur@Etoiles.gn")
+        self.c.post("/deconnexion")
+        r = self.c.post("/connexion", data={"identifiant": "directeur@etoiles.gn", "mot_de_passe": "Scolaris2026"})
+        self.assertEqual(r.status_code, 302)
+        self.c.post("/deconnexion")
+        base = {"ecole": "B", "nom": "N", "telephone": "620000005", "mot_de_passe": "Scolaris2026"}
+        r = self.c.post("/inscription", data=dict(base, confirmation="autre", conditions="1"))
+        self.assertIn("pas identiques", r.get_data(as_text=True))
+        r = self.c.post("/inscription", data=dict(base, confirmation="Scolaris2026"))
+        self.assertIn("conditions", r.get_data(as_text=True))
+        r = self.c.post("/inscription", data=dict(base, confirmation="Scolaris2026", conditions="1",
+                                                  email="directeur@etoiles.gn"))
+        self.assertIn("déjà un compte", r.get_data(as_text=True))
+        for url in ("/mot-de-passe-oublie", "/conditions", "/inscription"):
+            self.assertEqual(self.c.get(url).status_code, 200, url)
+
+    def test_directeur_change_mot_de_passe_membre(self):
+        self.inscrire()
+        self.c.post("/equipe", data={"nom": "Mariama", "telephone": "620000009", "role": "secretaire",
+                                     "mot_de_passe": "Secret2026"})
+        self.c.post("/equipe", data={"action": "mot_de_passe", "uid": "2", "mot_de_passe": "Nouveau2026"})
+        self.c.post("/deconnexion")
+        r = self.c.post("/connexion", data={"identifiant": "620000009", "mot_de_passe": "Nouveau2026"})
+        self.assertEqual(r.status_code, 302)
 
     def test_paiement_calcule_le_reste_et_recu(self):
         self.ecole_type()

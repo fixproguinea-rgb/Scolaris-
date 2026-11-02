@@ -1,0 +1,16 @@
+{% extends 'base_public.html' %}
+{% block titre %}Conditions d’utilisation · Scolaris{% endblock %}
+{% block contenu %}
+<div class="public">
+ <div class="centre" style="padding:22px 0 12px"><img src="{{ url_for('static', filename='img/accueil/icone.webp') }}" alt="" style="width:84px"></div>
+ <div class="carte">
+  <h1>Conditions d’utilisation</h1>
+  <p class="mt"><b>Le service.</b> Scolaris aide les établissements scolaires à suivre les frais de scolarité de leurs élèves (montants payés, restes à payer, retards) et à préparer des rappels aux parents. Aucun paiement n’est encaissé par Scolaris : l’argent va directement de la famille à l’école.</p>
+  <p class="mt"><b>Votre compte.</b> Le responsable qui inscrit l’établissement est le directeur du compte. Il ajoute et retire les membres de son équipe. Chacun garde son mot de passe secret.</p>
+  <p class="mt"><b>Les données.</b> Les informations saisies (élèves, parents, paiements) appartiennent à l’établissement. Elles servent uniquement au suivi des frais et aux rappels. Scolaris ne les vend pas et ne les partage pas. L’établissement s’engage à n’enregistrer que des informations utiles et à informer les familles de leur usage.</p>
+  <p class="mt"><b>Les rappels.</b> Les messages sont envoyés par l’établissement, depuis son propre téléphone (WhatsApp ou SMS). L’établissement reste responsable de leur contenu.</p>
+  <p class="mt"><b>L’abonnement.</b> Après la période d’essai, l’utilisation continue selon la formule choisie par l’établissement. Il peut arrêter à tout moment et demander l’export de ses données.</p>
+  <a class="btn bloc mt" href="{{ url_for('inscription') }}">Retour à l’inscription</a>
+ </div>
+</div>
+{% endblock %}
