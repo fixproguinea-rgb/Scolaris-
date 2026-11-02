@@ -220,7 +220,33 @@ def _wa(tel, texte):
 # ---------------------------------------------------------------- pages publiques
 @app.route("/health")
 def health():
-    return {"status": "ok", "app": "scolaris"}
+    """Etat du service. ?db=1 teste aussi la base (sans jamais afficher le mot de passe)."""
+    rep = {"status": "ok", "app": "scolaris"}
+    if request.args.get("db"):
+        from urllib.parse import urlparse
+        url = db.database_url()
+        if not url:
+            rep["base"] = "AUCUNE : la variable DATABASE_URL est absente sur Vercel"
+            rep["ok"] = not PROD
+        else:
+            hote = urlparse(url).hostname or ""
+            rep["base"] = "postgres"
+            rep["adresse"] = ("pooler (bon choix pour Vercel)" if "pooler.supabase.com" in hote
+                              else "directe db.xxx.supabase.co (Vercel ne peut pas la joindre : prendre le pooler)"
+                              if hote.startswith("db.") else hote)
+            try:
+                c = db.connect()
+                c.execute("SELECT 1").fetchone()
+                c.close()
+                rep["ok"] = True
+            except Exception as e:  # noqa: BLE001 - diagnostic
+                msg = str(e).replace(url, "***")
+                mdp = urlparse(url).password
+                if mdp:
+                    msg = msg.replace(mdp, "***")
+                rep["ok"] = False
+                rep["erreur"] = "%s : %s" % (type(e).__name__, (msg.splitlines() or [""])[0][:200])
+    return rep
 
 
 @app.route("/")
@@ -877,6 +903,12 @@ def export(quoi):
 def _404(_e):
     return render_template("erreur.html", titre="Page introuvable",
                            texte="Cette page n'existe pas ou n'est plus disponible."), 404
+
+
+@app.errorhandler(500)
+def _500(_e):
+    return render_template("erreur.html", titre="Un problème est survenu",
+                           texte="Le serveur n'a pas pu terminer l'opération. Réessayez dans un instant."), 500
 
 
 @app.errorhandler(403)

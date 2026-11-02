@@ -85,6 +85,8 @@ def connect():
     url = database_url()
     if url:
         import psycopg2
+        if "sslmode=" not in url:
+            url += ("&" if "?" in url else "?") + "sslmode=require"
         return _Conn(psycopg2.connect(url, connect_timeout=10), True)
     path = os.environ.get("SCOLARIS_DB_PATH", "scolaris.db")
     raw = sqlite3.connect(path)
