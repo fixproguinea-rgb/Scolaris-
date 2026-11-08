@@ -1,12 +1,6 @@
 {
-  "version": 2,
-  "regions": ["dub1"],
-  "builds": [
-    { "src": "api/index.py", "use": "@vercel/python" },
-    { "src": "static/**", "use": "@vercel/static" }
-  ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "api/index.py" }
-  ]
+  "buildCommand": "node build.mjs",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [{ "source": "/((?!app\\.js|app\\.css|img/|fonts/|manifest\\.json).*)", "destination": "/index.html" }]
 }
